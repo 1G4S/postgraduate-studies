@@ -1,5 +1,8 @@
 import os
 import urllib
+import logging
+import pandas as pd
+import requests
 from sqlalchemy import create_engine
 
 class SalesPipeline:
@@ -20,3 +23,14 @@ class SalesPipeline:
             f"Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
         )
         return create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+
+    def extract(self) -> dict:
+        """Extracting data from varius sources."""
+        logging.info("Rozpoczęcie ekstrakcji danych z plików i API...")
+        api_data = requests.get(self.api_url).json()
+
+        return {
+            'customers': pd.read_json(self.customers_path),
+            'sales': pd.read_csv(self.sales_path),
+            'products': pd.DataFrame(api_data)[['id', 'title', 'price']].rename(columns={'id': 'product_id'})
+        }
