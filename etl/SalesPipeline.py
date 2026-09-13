@@ -27,7 +27,17 @@ class SalesPipeline:
     def extract(self) -> dict:
         """Extracting data from varius sources."""
         logging.info("Rozpoczęcie ekstrakcji danych z plików i API...")
-        api_data = requests.get(self.api_url).json()
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+
+        response = requests.get(self.api_url, headers=headers)
+
+        if response.status_code != 200:
+            logging.error(f"Błąd poł. z API. Status: {response.status_code}, Odpowiedź: {response.text}")
+            response.raise_for_status()
+
+        api_data = response.json()
 
         return {
             'customers': pd.read_json(self.customers_path),
