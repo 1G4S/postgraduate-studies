@@ -34,3 +34,26 @@ class SalesPipeline:
             'sales': pd.read_csv(self.sales_path),
             'products': pd.DataFrame(api_data)[['id', 'title', 'price']].rename(columns={'id': 'product_id'})
         }
+
+    def transform(self, data: dict) -> dict:
+        """Cleaning data and building star schema"""
+        logging.info("Transformacja i modelowanie danych")
+        df_sales = data['sales']
+        df_sales['date'] = pd.to_datetime(df_sales['date'])
+
+        df_date = pd.DataFrame({'date_id': df_sales['date'].unique()})
+        df_date['year'] = df_date['date_id'].dt.year
+        df_date['month'] = df_date['date_id'].dt.month
+        df_date['day'] = df_date['date_id'].dt.day
+
+        df_fact = df_sales.merge(data['products'], on='product_id', how='left')
+        df_fact['total_amount'] = df_fact['qty'] * df_fact['price']
+        df_fact = df_fact[['sale_id', 'customer_id', 'product_id', 'date', 'qty', 'total_amount']].rename(
+            columns={'date': 'date_id'})
+
+        return {
+            'dim_customer': data['customers'],
+            'dim_product': data['products'],
+            'dim_date': df_date,
+            'fact_sales': df_fact
+        }
