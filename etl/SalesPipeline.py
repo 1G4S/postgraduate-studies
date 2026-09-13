@@ -64,3 +64,14 @@ class SalesPipeline:
         for table_name, df in transformed_data.items():
             df.to_sql(table_name, self.engine, if_exists='append', index=False)
             logging.info(f"Załadowano tabelę: {table_name}")
+
+    def run(self):
+        """Full pipeline"""
+        try:
+            raw_data = self.extract()
+            final_data = self.transform(raw_data)
+            self.load(final_data)
+            logging.info("ETL zakończony sukcesem")
+        except Exception as e:
+            logging.error(f"Błąd w ETL: {e}")
+            raise
