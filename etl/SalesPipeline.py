@@ -37,7 +37,7 @@ class SalesPipeline:
             logging.error(f"Błąd poł. z API. Status: {response.status_code}, Odpowiedź: {response.text}")
             response.raise_for_status()
 
-        api_data = response.json()
+        api_data = response.json()['products']
 
         return {
             'customers': pd.read_json(self.customers_path),
