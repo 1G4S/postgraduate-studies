@@ -56,7 +56,7 @@ class SalesPipeline:
         df_date['month'] = df_date['date_id'].dt.month
         df_date['day'] = df_date['date_id'].dt.day
 
-        df_fact = df_sales.merge(data['products'], on='product_id', how='left')
+        df_fact = df_sales.merge(data['products'], on='product_id', how='inner')
         df_fact['total_amount'] = df_fact['qty'] * df_fact['price']
         df_fact = df_fact[['sale_id', 'customer_id', 'product_id', 'date', 'qty', 'total_amount']].rename(
             columns={'date': 'date_id'})
