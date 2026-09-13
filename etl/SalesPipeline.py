@@ -57,3 +57,10 @@ class SalesPipeline:
             'dim_date': df_date,
             'fact_sales': df_fact
         }
+
+    def load(self, transformed_data: dict):
+        """Loading data to DWH"""
+        logging.info("Ładowanie danych do Azure")
+        for table_name, df in transformed_data.items():
+            df.to_sql(table_name, self.engine, if_exists='append', index=False)
+            logging.info(f"Załadowano tabelę: {table_name}")
