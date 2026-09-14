@@ -3,7 +3,9 @@ import urllib
 import logging
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm.sync import clear
+
 
 class SalesPipeline:
     def __init__(self, customers_path: str, sales_path: str, api_url: str):
@@ -75,9 +77,23 @@ class SalesPipeline:
             df.to_sql(table_name, self.engine, if_exists='append', index=False)
             logging.info(f"Załadowano tabelę: {table_name}")
 
+    def clear_tables(self):
+        """Clean tables"""
+        logging.info("Usuwanie danych")
+
+        with self.engine.begin() as conn:
+            conn.execute(text("DELETE FROM fact_sales;"))
+
+            conn.execute(text("DELETE FROM dim_customer;"))
+            conn.execute(text("DELETE FROM dim_product;"))
+            conn.execute(text("DELETE FROM dim_date;"))
+
+        logging.info("Sukces. Dane usunięte!")
+
     def run(self):
         """Full pipeline"""
         try:
+            self.clear_tables()
             raw_data = self.extract()
             final_data = self.transform(raw_data)
             self.load(final_data)
